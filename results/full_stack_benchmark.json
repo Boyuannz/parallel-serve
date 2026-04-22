@@ -1,0 +1,62 @@
+[
+  {
+    "total_bs": 64,
+    "n_layers": 32,
+    "split": 32,
+    "ms_serial": 25.82144006093343,
+    "ms_par_2stream": 22.54097064336141,
+    "ms_fused": 19.1123628616333,
+    "ms_single_xattn": 13.534634510676065,
+    "fused_over_serial": 0.740174165985009,
+    "par_over_serial": 0.8729555977578799,
+    "fused_save_pct": 25.982583401499106
+  },
+  {
+    "total_bs": 128,
+    "n_layers": 32,
+    "split": 64,
+    "ms_serial": 27.034026622772217,
+    "ms_par_2stream": 22.77120002110799,
+    "ms_fused": 20.252928098042805,
+    "ms_single_xattn": 15.718485275904337,
+    "fused_over_serial": 0.7491643172749809,
+    "par_over_serial": 0.8423162534702315,
+    "fused_save_pct": 25.08356827250191
+  },
+  {
+    "total_bs": 256,
+    "n_layers": 32,
+    "split": 128,
+    "ms_serial": 31.5012264251709,
+    "ms_par_2stream": 26.144597212473553,
+    "ms_fused": 25.218559900919598,
+    "ms_single_xattn": 23.890517393747967,
+    "fused_over_serial": 0.8005580341712929,
+    "par_over_serial": 0.8299548995204467,
+    "fused_save_pct": 19.94419658287071
+  },
+  {
+    "total_bs": 512,
+    "n_layers": 32,
+    "split": 256,
+    "ms_serial": 47.875840504964195,
+    "ms_par_2stream": 44.09582932790121,
+    "ms_fused": 40.27562650044759,
+    "ms_single_xattn": 50.653355280558266,
+    "fused_over_serial": 0.8412515806646038,
+    "par_over_serial": 0.9210455391029418,
+    "fused_save_pct": 15.874841933539619
+  },
+  {
+    "total_bs": 1024,
+    "n_layers": 32,
+    "split": 512,
+    "ms_serial": 101.42199452718098,
+    "ms_par_2stream": 89.71980794270833,
+    "ms_fused": 74.75234095255534,
+    "ms_single_xattn": 118.5519790649414,
+    "fused_over_serial": 0.7370427026311517,
+    "par_over_serial": 0.8846188478246059,
+    "fused_save_pct": 26.29572973688483
+  }
+]

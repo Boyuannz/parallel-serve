@@ -1,0 +1,32 @@
+{
+  "note": "Partial run — killed before completion. OOM at seq=128 total=1024.",
+  "date": "2026-04-18",
+  "gpu": "NVIDIA A800-SXM4-80GB",
+  "mem_after_load_gb": 27.0,
+  "results": [
+    {"seq_len": 1, "total": 64, "n_llama": 16, "n_vicuna": 48, "ms_serial": 41.87, "ms_parallel": 41.71, "speedup": 1.004, "ms_solo_llama": 20.84, "ms_solo_vicuna": 20.98},
+    {"seq_len": 1, "total": 64, "n_llama": 32, "n_vicuna": 32, "ms_serial": 41.73, "ms_parallel": 41.49, "speedup": 1.006, "ms_solo_llama": 20.98, "ms_solo_vicuna": 21.02},
+    {"seq_len": 1, "total": 64, "n_llama": 48, "n_vicuna": 16, "ms_serial": 41.85, "ms_parallel": 41.55, "speedup": 1.007, "ms_solo_llama": 21.18, "ms_solo_vicuna": 20.91},
+    {"seq_len": 1, "total": 256, "n_llama": 64, "n_vicuna": 192, "ms_serial": 51.48, "ms_parallel": 51.36, "speedup": 1.002, "ms_solo_llama": 20.96, "ms_solo_vicuna": 30.69},
+    {"seq_len": 1, "total": 256, "n_llama": 128, "n_vicuna": 128, "ms_serial": 49.59, "ms_parallel": 48.32, "speedup": 1.026, "ms_solo_llama": 25.09, "ms_solo_vicuna": 25.09},
+    {"seq_len": 1, "total": 256, "n_llama": 192, "n_vicuna": 64, "ms_serial": 48.29, "ms_parallel": 45.17, "speedup": 1.069, "ms_solo_llama": 30.66, "ms_solo_vicuna": 20.72},
+    {"seq_len": 1, "total": 1024, "n_llama": 256, "n_vicuna": 768, "ms_serial": 116.64, "ms_parallel": 114.51, "speedup": 1.019, "ms_solo_llama": 34.84, "ms_solo_vicuna": 82.55},
+    {"seq_len": 1, "total": 1024, "n_llama": 512, "n_vicuna": 512, "ms_serial": 120.29, "ms_parallel": 114.68, "speedup": 1.049, "ms_solo_llama": 60.25, "ms_solo_vicuna": 60.93},
+    {"seq_len": 1, "total": 1024, "n_llama": 768, "n_vicuna": 256, "ms_serial": 116.70, "ms_parallel": 110.82, "speedup": 1.053, "ms_solo_llama": 82.50, "ms_solo_vicuna": 34.78},
+    {"seq_len": 1, "total": 2048, "n_llama": 512, "n_vicuna": 1536, "ms_serial": 226.52, "ms_parallel": 220.33, "speedup": 1.028, "ms_solo_llama": 60.55, "ms_solo_vicuna": 166.47},
+    {"seq_len": 1, "total": 2048, "n_llama": 1024, "n_vicuna": 1024, "ms_serial": 226.59, "ms_parallel": 219.45, "speedup": 1.033, "ms_solo_llama": 113.04, "ms_solo_vicuna": 113.80},
+    {"seq_len": 1, "total": 2048, "n_llama": 1536, "n_vicuna": 512, "ms_serial": 226.48, "ms_parallel": 216.34, "speedup": 1.047, "ms_solo_llama": 165.58, "ms_solo_vicuna": 61.04},
+    {"seq_len": 128, "total": 64, "n_llama": 16, "n_vicuna": 48, "ms_serial": 624.98, "ms_parallel": 609.17, "speedup": 1.026, "ms_solo_llama": 157.93, "ms_solo_vicuna": 466.79},
+    {"seq_len": 128, "total": 64, "n_llama": 32, "n_vicuna": 32, "ms_serial": 619.51, "ms_parallel": 603.55, "speedup": 1.026, "ms_solo_llama": 308.48, "ms_solo_vicuna": 311.31},
+    {"seq_len": 128, "total": 64, "n_llama": 48, "n_vicuna": 16, "ms_serial": 622.58, "ms_parallel": 605.36, "speedup": 1.028, "ms_solo_llama": 463.08, "ms_solo_vicuna": 159.50},
+    {"seq_len": 128, "total": 256, "n_llama": 64, "n_vicuna": 192, "ms_serial": 2419.28, "ms_parallel": 2398.70, "speedup": 1.009, "ms_solo_llama": 606.79, "ms_solo_vicuna": 1811.37},
+    {"seq_len": 128, "total": 256, "n_llama": 128, "n_vicuna": 128, "ms_serial": 2409.36, "ms_parallel": 2383.25, "speedup": 1.011, "ms_solo_llama": 1199.09, "ms_solo_vicuna": 1209.76},
+    {"seq_len": 128, "total": 256, "n_llama": 192, "n_vicuna": 64, "ms_serial": 2405.68, "ms_parallel": 2381.40, "speedup": 1.010, "ms_solo_llama": 1793.50, "ms_solo_vicuna": 612.06}
+  ],
+  "summary": {
+    "seq_1_max_speedup": {"config": "total=256 split=192/64", "value": 1.069},
+    "seq_1_avg_speedup": 1.032,
+    "seq_128_max_speedup": 1.028,
+    "takeaway": "2-stream parallel 最多 +6.9% (seq=1, total=256, 75/25 split). Prefill (seq=128) 下更小 (~1-3%)."
+  }
+}
