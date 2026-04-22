@@ -27,7 +27,7 @@ All work ran on CN_A100 (A100-PCIE-40GB × 10), GPUs 6 + 7 in parallel.
 
 ## 🔥 Headline findings
 
-### 1. Fuse save% grows with batch size — up to **+65.4% at bs=8192**
+### 1. Fuse save% in the large-batch region (2048..8192) — up to **+65.4% at bs=8192**
 
 `bench_large_batch_sweep.py` (warmup=5, iters=30, std ≤6 ms):
 
@@ -38,18 +38,25 @@ All work ran on CN_A100 (A100-PCIE-40GB × 10), GPUs 6 + 7 in parallel.
 | 6144 | 1530.26 | 637.57 | **+58.3%** | 6.44 |
 | 8192 | 2444.89 | 845.32 | **+65.4%** | 1.32 |
 
-**Previous ceiling claim (bs≤256 save 25-50%) was way too conservative.**
-The save curve keeps climbing through 8192 with no sign of saturation.
+**In this range (bs 2048..8192) save% grows monotonically with batch.**
+The curve keeps climbing through 8192 with no sign of saturation.
 
-Physical explanation: serial's attention cost is
-`2 × O(M²)` per-layer where `M = total_bs/2`. Fused's attention cost
-via SDPA batch-dim is `2 × O(M²)` as well — in theory identical — but
-fused runs a single kernel call per layer, while serial pays launch
-overhead for two kernels per layer *and* each kernel has its own
-memory bandwidth pressure. At larger M, HBM traffic dominates, and
-bmm `[2, M, K] @ [2, K, N]` reads each weight slice **half as many
-times** as two separate mm calls (because bmm batches the read). This
-becomes the dominant effect.
+⚠️ **Save% is NOT monotonic across the full batch range.** The flagship
+sweep over bs=32..2048 (see §2 table below) is non-monotonic: 19.0 →
+18.7 → 13.3 → 7.5 → 19.6 → 31.6%. Small/medium batches dip in the
+middle (likely a kernel-tile size boundary effect) before the save%
+takes off past bs=1024. Earlier wording that said "monotonic growth"
+overclaimed — corrected per Codex review.
+
+**Tentative explanation (NOT verified by profiler)**: fused runs one
+kernel call per layer vs two for serial, saving launch overhead; and
+`torch.bmm([2, M, K] @ [2, K, N])` may enable better batched-GEMM
+scheduling than two independent mm calls at the same total compute.
+The hypothesis that "bmm halves weight HBM reads" is **unverified**:
+weights at slot 0 and slot 1 are independent random tensors, so each
+gets read exactly once per forward in both paths. The real source of
+the speed-up at large batch is likely scheduler/compute overlap, not
+HBM reuse. A nsys/CUPTI run is needed to confirm.
 
 ### 2. Real LLaMA-2-7B + Vicuna-7B confirms random-weight numbers
 
@@ -65,10 +72,16 @@ becomes the dominant effect.
 | 1024 | +19.6% | +21.9% | close |
 | **2048** | **+31.6%** | **+32.9%** | ✅ |
 
-Real-weight peak (+32.9%) very slightly beats random-weight (+31.6%).
-This is consistent with real LLaMA weights having somewhat tighter
-value distributions than Gaussian random, which helps memory access
-patterns. Nothing model-specific breaks the recipe.
+**Maximum deviation = 5.9 pp at bs=32** (14.9% random vs 20.8% real). At
+bs=2048 the two match within 1.3 pp (31.6% vs 32.9%). Earlier wording
+"within 1-2%" was too tight — corrected per Codex review.
+
+At medium batches (bs=64..256) the match is excellent (≤0.2 pp). The
+gap at bs=32 likely reflects cuBLAS kernel-tile selection differences
+between Gaussian-random vs real LLaMA weight distributions: at small
+M the kernel dispatch is more sensitive to value range. At production
+batch sizes (bs≥128) the recipe transfers cleanly from random to real
+weights.
 
 ### 3. A/A workload (same weights used twice): fused beats even single big forward
 
@@ -83,14 +96,18 @@ patterns. Nothing model-specific breaks the recipe.
 | 1024 | 138.92 | 117.85 | 95.03 | 0.684× | 0.806× |
 | 2048 | 373.52 | 278.85 | 190.63 | **0.510×** | 0.684× |
 
-**At bs≥512, fused is *faster than a single-server baseline at same total
-batch***. Because bmm batches the weight read, serving two slots
-together is actually cheaper than running one big forward for all
-tokens, once M gets large enough.
+**At bs≥512, fused is faster than a single-server baseline at same total
+batch**. Tentative explanation (NOT profiler-verified): fewer kernel
+launches + better batched-GEMM scheduling. bmm's claimed "halves HBM
+weight reads" was dropped per Codex review — slot 0 and slot 1 weights
+are independent tensors, so they're still each read once per forward
+in both paths. The real mechanism behind the speed-up is scheduling /
+compute overlap, not HBM reuse. Needs nsys/CUPTI to confirm.
 
-At bs=2048: fused = **51% of single_server time**, i.e. fuse is
-effectively free and even saves ~50% over plain vLLM single-server
-baseline for the same total token count.
+At bs=2048: fused = **51% of single_server time** (190.63ms vs 373.52ms).
+Useful framing: serving two slots together can be **cheaper than running
+one big forward for the same total token count** — but the underlying
+mechanism is more subtle than the original draft claimed.
 
 ### 4. e2e split sweep at total_bs=2048 fills the "advisor requested" chart
 
