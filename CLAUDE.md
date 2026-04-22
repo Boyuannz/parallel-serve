@@ -230,6 +230,46 @@ Kernel 内部:
 
 ## 📈 Current Baseline Results
 
+---
+
+### 🚨 RETRACTION (2026-04-22)
+
+**Two earlier claims were wrong and have been superseded**:
+
+1. ❌ **"`fused_upper` (= `block_a(cat(x_a, x_b))`) is the fused kernel lower bound"** — it is NOT.  
+   It's single-model forward on 2× tokens, so attention is O((2S)²) instead of 2·O(S²). Misleading proxy.
+
+2. ❌ **"Fuse 收益 ~0% at bs ≥ 1024, negative at bs=2048 balanced"** — only true for the misleading `fused_upper`.  
+   **Real `TwoModelBlockFused` (bmm + SDPA batch-dim) saves +7–32% across all tested balanced batches, with the LARGEST save (+31.6%) at total_bs=2048.**
+
+See `### 🔥 Real fused_bmm Benchmark (2026-04-22)` below for the new numbers.
+
+---
+
+### 🔥 Real fused_bmm Benchmark (2026-04-22)
+
+CN_A100 A100-PCIE-40GB, 32-layer LLaMA-7B dims random weights, BF16, CUDA graph, balanced split.
+Single stacked-weight set shared across serial (via views) and fused paths — 26 GB, fits 40GB.
+
+| total_bs | M/side | serial (ms) | fused_bmm (ms) | save% |
+|---:|---:|---:|---:|---:|
+| 32 | 16 | 24.65 | 20.99 | **+14.9%** |
+| 64 | 32 | 26.73 | 21.66 | **+19.0%** |
+| 128 | 64 | 28.32 | 23.02 | **+18.7%** |
+| 256 | 128 | 34.15 | 29.61 | **+13.3%** |
+| 512 | 256 | 54.16 | 50.09 | +7.5% |
+| 1024 | 512 | 117.88 | 94.77 | **+19.6%** |
+| **2048** | **1024** | **279.12** | **190.85** | **+31.6%** 🔥 |
+
+Script: `experiments/bench_real_bmm_fused.py`  
+Result: `results/bench_real_bmm_fused.json`
+
+**Why the old claim was wrong**: the `split_sweep_cudagraph_v2.py` "fused" path was actually `block_a(cat(x_a,x_b))`, which at total_bs=2048 runs ONE model over 2048 tokens → attention compute is O((2·1024)²) = 4·S². The real fused keeps per-model isolation via SDPA dim-0 batch → attention compute is 2·O(S²) = 2·S². Half the attention cost at balanced 1024/1024.
+
+**Implication**: decode fuse sweet spot extends all the way to at least bs=2048, not just bs≤256.
+
+---
+
 ### DeltaZip TPOT (canonical, 2026-04-07)
 
 **Setup**: vllm bench serve, 500 req, concurrency=32, input=256, output=256 fixed, cudagraph enabled.
@@ -397,7 +437,13 @@ attn = F.scaled_dot_product_attention(q, k, v)       # one call, two models isol
 
 **Pivot**: 用 `torch.bmm` 作 GEMM 原语（≈ serial），重点在全模型 forward 结构化，而非单层 kernel 优化。
 
-### 🔥 Fused Kernel Upper Bound Results (2026-04-18)
+### ⚠️ Fused Kernel Upper Bound Results (2026-04-18) — RETRACTED IN PART
+
+> **The numbers below are for `fused_upper = block_a(cat(x_a, x_b))`, which is NOT a real
+> fused lower bound — it doubles attention sequence length (O((2S)²) compute), so it
+> understates what a real fused kernel (which keeps per-model attention isolated via SDPA
+> dim-0 batch) can achieve. See "🔥 Real fused_bmm Benchmark (2026-04-22)" above for the
+> corrected data. The "bs ≥ 1024 收益 ~0%" claim in this table is WRONG.**
 
 **背景**: 之前测的 "2-stream parallel 只有 5% 收益" 和 "MLP-only grouped GEMM 负优化" **误导了路线判断**。
 
