@@ -1,0 +1,68 @@
+{
+  "config": {
+    "H": 4096,
+    "FF": 11008,
+    "n_heads": 32,
+    "n_layers": 32,
+    "dtype": "torch.bfloat16",
+    "real_weights": true,
+    "models": [
+      "LLaMA-2-7B",
+      "Vicuna-7B"
+    ],
+    "warmup": 3,
+    "iters": 5,
+    "cudagraph": true
+  },
+  "results": [
+    {
+      "total_bs": 32,
+      "M": 16,
+      "ms_serial": 26.58037757873535,
+      "ms_fused_bmm": 21.041766357421874,
+      "save_pct": 20.837218000034873
+    },
+    {
+      "total_bs": 64,
+      "M": 32,
+      "ms_serial": 26.72291831970215,
+      "ms_fused_bmm": 21.615001678466797,
+      "save_pct": 19.114366852176513
+    },
+    {
+      "total_bs": 128,
+      "M": 64,
+      "ms_serial": 28.19891242980957,
+      "ms_fused_bmm": 22.92674560546875,
+      "save_pct": 18.696348085990444
+    },
+    {
+      "total_bs": 256,
+      "M": 128,
+      "ms_serial": 33.95727386474609,
+      "ms_fused_bmm": 29.369753646850587,
+      "save_pct": 13.509683480976364
+    },
+    {
+      "total_bs": 512,
+      "M": 256,
+      "ms_serial": 53.510554504394534,
+      "ms_fused_bmm": 48.50810852050781,
+      "save_pct": 9.348522044330332
+    },
+    {
+      "total_bs": 1024,
+      "M": 512,
+      "ms_serial": 115.74190063476563,
+      "ms_fused_bmm": 90.42800598144531,
+      "save_pct": 21.870985800726285
+    },
+    {
+      "total_bs": 2048,
+      "M": 1024,
+      "ms_serial": 273.9075012207031,
+      "ms_fused_bmm": 183.75106506347657,
+      "save_pct": 32.91492045870707
+    }
+  ]
+}

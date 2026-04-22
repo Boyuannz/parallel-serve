@@ -121,13 +121,11 @@ def plot_aa_match():
     bs = [r["total_bs"] for r in rs]
     single = [r["ms_single"] for r in rs]
     seq = [r["ms_sequential"] for r in rs]
-    par = [r["ms_parallel_2stream"] for r in rs]
     fused = [r["ms_fused"] for r in rs]
 
     fig, ax = plt.subplots(figsize=(11, 6))
     ax.plot(bs, single, "o-", label="single_server (baseline)", color="#34495e", linewidth=2)
     ax.plot(bs, seq, "o-", label="sequential 2x", color="#c0392b", linewidth=2)
-    ax.plot(bs, par, "o-", label="parallel 2-stream", color="#2980b9", linewidth=2)
     ax.plot(bs, fused, "s-", label="fused (ours)", color="#e67e22", linewidth=2, markersize=8)
     ax.set_xlabel("total_bs")
     ax.set_ylabel("end-to-end latency (ms)")

@@ -1,0 +1,81 @@
+{
+  "config": {
+    "H": 4096,
+    "FF": 11008,
+    "n_heads": 32,
+    "n_layers": 32,
+    "dtype": "torch.bfloat16",
+    "warmup": 3,
+    "iters": 5,
+    "cudagraph": true,
+    "note": "A/A workload: same model weights used twice"
+  },
+  "results": [
+    {
+      "total_bs": 64,
+      "M": 32,
+      "ms_single": 15.91029758453369,
+      "ms_sequential": 26.6102783203125,
+      "ms_fused": 21.615410995483398,
+      "fused_over_single": 1.3585799310564508,
+      "fused_over_sequential": 0.8122955624625559,
+      "save_vs_sequential": 18.770443753744416,
+      "save_vs_single": -35.85799310564508
+    },
+    {
+      "total_bs": 128,
+      "M": 64,
+      "ms_single": 16.969728088378908,
+      "ms_sequential": 28.213452911376955,
+      "ms_fused": 23.023205947875976,
+      "fused_over_single": 1.3567221482848961,
+      "fused_over_sequential": 0.8160364497105551,
+      "save_vs_sequential": 18.396355028944487,
+      "save_vs_single": -35.672214828489615
+    },
+    {
+      "total_bs": 256,
+      "M": 128,
+      "ms_single": 26.968268966674806,
+      "ms_sequential": 34.137088012695315,
+      "ms_fused": 29.576191711425782,
+      "fused_over_single": 1.0967033793668268,
+      "fused_over_sequential": 0.8663946878077775,
+      "save_vs_sequential": 13.36053121922225,
+      "save_vs_single": -9.670337936682682
+    },
+    {
+      "total_bs": 512,
+      "M": 256,
+      "ms_single": 58.92566986083985,
+      "ms_sequential": 53.975039672851565,
+      "ms_fused": 49.8642936706543,
+      "fused_over_single": 0.8462236201712243,
+      "fused_over_sequential": 0.923839870667758,
+      "save_vs_sequential": 7.616012933224203,
+      "save_vs_single": 15.377637982877568
+    },
+    {
+      "total_bs": 1024,
+      "M": 512,
+      "ms_single": 138.92198486328124,
+      "ms_sequential": 117.85420684814453,
+      "ms_fused": 95.02986297607421,
+      "fused_over_single": 0.6840520099795361,
+      "fused_over_sequential": 0.8063340759530159,
+      "save_vs_sequential": 19.366592404698412,
+      "save_vs_single": 31.594799002046393
+    },
+    {
+      "total_bs": 2048,
+      "M": 1024,
+      "ms_single": 373.5152587890625,
+      "ms_sequential": 278.84666137695314,
+      "ms_fused": 190.6346008300781,
+      "fused_over_single": 0.5103796868918181,
+      "fused_over_sequential": 0.6836538758926457,
+      "save_vs_sequential": 31.63461241073543,
+      "save_vs_single": 48.96203131081819
+    }
+  ]
+}

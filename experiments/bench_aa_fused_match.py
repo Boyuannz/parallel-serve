@@ -140,12 +140,8 @@ def main():
     # Views: both slots reference the same underlying weights (since we stacked duplicates)
     W_views = [{k: v[0] for k, v in layer.items()} for layer in W]
 
-    # Streams for parallel_2stream
-    s1 = torch.cuda.Stream()
-    s2 = torch.cuda.Stream()
-
-    hdr = "{:>6} | {:>9} | {:>10} | {:>10} | {:>10} | {:>8} | {:>8}".format(
-        "total", "single", "seq_2x", "par_2strm", "fused", "fus/sing", "fus/par"
+    hdr = "{:>6} | {:>9} | {:>10} | {:>10} | {:>8} | {:>8}".format(
+        "total", "single", "seq_2x", "fused", "fus/sing", "fus/seq"
     )
     print(f"\n{hdr}", flush=True)
     print("-" * 90, flush=True)
@@ -182,22 +178,8 @@ def main():
                 return run
             ms_seq, _ = capture_and_bench(seq_factory)
 
-            # 3. parallel_2stream
-            def par_factory():
-                ba = x_a.clone(); bb = x_b.clone()
-                def run():
-                    with torch.cuda.stream(s1):
-                        h_a = ba
-                        for w in W_views:
-                            h_a = single_forward(h_a, w, N_HEADS, HEAD_DIM, H)
-                    with torch.cuda.stream(s2):
-                        h_b = bb
-                        for w in W_views:
-                            h_b = single_forward(h_b, w, N_HEADS, HEAD_DIM, H)
-                return run
-            ms_par, _ = capture_and_bench(par_factory)
-
-            # 4. fused
+            # 3. fused (dropped parallel_2stream — incompatible with CUDA graph capture;
+            #    known from CLAUDE.md to be only +5% inside single process anyway)
             def fused_factory():
                 buf = x_stk.clone()
                 def run():
@@ -208,17 +190,16 @@ def main():
             ms_fused, _ = capture_and_bench(fused_factory)
 
             fus_over_sing = ms_fused / ms_single
-            fus_over_par = ms_fused / ms_par
-            print(f"{total_bs:>6} | {ms_single:>7.2f}ms | {ms_seq:>8.2f}ms | {ms_par:>8.2f}ms | {ms_fused:>8.2f}ms | {fus_over_sing:>7.3f}x | {fus_over_par:>7.3f}x", flush=True)
+            fus_over_seq = ms_fused / ms_seq
+            print(f"{total_bs:>6} | {ms_single:>7.2f}ms | {ms_seq:>8.2f}ms | {ms_fused:>8.2f}ms | {fus_over_sing:>7.3f}x | {fus_over_seq:>7.3f}x", flush=True)
 
             results.append(dict(
                 total_bs=total_bs, M=M,
-                ms_single=ms_single, ms_sequential=ms_seq,
-                ms_parallel_2stream=ms_par, ms_fused=ms_fused,
+                ms_single=ms_single, ms_sequential=ms_seq, ms_fused=ms_fused,
                 fused_over_single=fus_over_sing,
-                fused_over_parallel=fus_over_par,
+                fused_over_sequential=fus_over_seq,
                 save_vs_sequential=(1 - ms_fused / ms_seq) * 100,
-                save_vs_parallel=(1 - ms_fused / ms_par) * 100,
+                save_vs_single=(1 - ms_fused / ms_single) * 100,
             ))
             del x_full, x_a, x_b, x_stk
             torch.cuda.empty_cache()
