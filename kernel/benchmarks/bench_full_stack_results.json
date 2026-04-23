@@ -1,0 +1,88 @@
+{
+  "config": {
+    "H": 4096,
+    "FF": 11008,
+    "n_heads": 32,
+    "n_layers": 32,
+    "dtype": "torch.bfloat16"
+  },
+  "results": [
+    {
+      "total_bs": 32,
+      "M": 16,
+      "ms_serial": 22.666290950775146,
+      "ms_bmm": 21.209036827087402,
+      "ms_routed": 23.791564750671387,
+      "r_routed_over_serial": 1.0496452552532756,
+      "r_bmm_over_serial": 0.9357083112163127,
+      "save_routed_pct": -4.964525525327557,
+      "save_bmm_pct": 6.4291688783687295
+    },
+    {
+      "total_bs": 64,
+      "M": 32,
+      "ms_serial": 23.12120313644409,
+      "ms_bmm": 21.84903688430786,
+      "ms_routed": 21.493145656585693,
+      "r_routed_over_serial": 0.9295859531940955,
+      "r_bmm_over_serial": 0.9449783713836666,
+      "save_routed_pct": 7.041404680590446,
+      "save_bmm_pct": 5.502162861633342
+    },
+    {
+      "total_bs": 128,
+      "M": 64,
+      "ms_serial": 23.946291160583495,
+      "ms_bmm": 23.328102397918702,
+      "ms_routed": 22.61288948059082,
+      "r_routed_over_serial": 0.9443169854132775,
+      "r_bmm_over_serial": 0.9741843628928075,
+      "save_routed_pct": 5.568301458672254,
+      "save_bmm_pct": 2.581563710719248
+    },
+    {
+      "total_bs": 256,
+      "M": 128,
+      "ms_serial": 28.159436988830567,
+      "ms_bmm": 30.580633640289307,
+      "ms_routed": 30.597580909729004,
+      "r_routed_over_serial": 1.0865835464631457,
+      "r_bmm_over_serial": 1.0859817137828114,
+      "save_routed_pct": -8.65835464631457,
+      "save_bmm_pct": -8.598171378281139
+    },
+    {
+      "total_bs": 512,
+      "M": 256,
+      "ms_serial": 45.883289909362794,
+      "ms_bmm": 51.18187503814697,
+      "ms_routed": 51.66929893493652,
+      "r_routed_over_serial": 1.1261027497592986,
+      "r_bmm_over_serial": 1.115479625354915,
+      "save_routed_pct": -12.610274975929858,
+      "save_bmm_pct": -11.547962535491507
+    },
+    {
+      "total_bs": 1024,
+      "M": 512,
+      "ms_serial": 86.69716453552246,
+      "ms_bmm": 99.08546600341796,
+      "ms_routed": 95.69889259338379,
+      "r_routed_over_serial": 1.1038295555118536,
+      "r_bmm_over_serial": 1.1428916566564256,
+      "save_routed_pct": -10.382955551185358,
+      "save_bmm_pct": -14.289165665642557
+    },
+    {
+      "total_bs": 2048,
+      "M": 1024,
+      "ms_serial": 166.75087356567383,
+      "ms_bmm": 197.49463119506837,
+      "ms_routed": 182.6110954284668,
+      "r_routed_over_serial": 1.0951132760125932,
+      "r_bmm_over_serial": 1.1843693947263567,
+      "save_routed_pct": -9.511327601259323,
+      "save_bmm_pct": -18.43693947263567
+    }
+  ]
+}
