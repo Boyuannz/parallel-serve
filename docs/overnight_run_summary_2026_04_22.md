@@ -1,5 +1,22 @@
 # Overnight Run Summary (2026-04-22)
 
+> ## ⚠️ SUPERSEDED — see `docs/CORRECTION_2026_04_23.md`
+>
+> All "fuse saves X%" numbers in this doc are **wrong**. nsys profile (run
+> 2026-04-23) revealed that our serial baseline was unfairly using SDPA's
+> math backend (because the code passed 3D q/k/v tensors), while the fused
+> path used FlashAttention-2 (4D tensors). That SDPA-backend asymmetry was
+> the main driver of the "save%", not fuse itself.
+>
+> After fair comparison (both paths use FA2):
+> - Small batch (bs≤128): fuse wins **+3-7%** (launch overhead savings)
+> - Large batch (bs≥256): fuse **loses 7-26%** (bmm at batch=2 is worse than 2× mm)
+>
+> **Do not cite numbers from this document.** See the correction notice for
+> the corrected comparison.
+
+
+
 **Context**: User asked Claude to autonomously execute P0–P2 tasks while
 sleeping, covering a broad bench + doc cleanup pass after the flagship
 `bench_real_bmm_fused` finding (+31.6% @ bs=2048) contradicted prior

@@ -232,6 +232,23 @@ Kernel 内部:
 
 ---
 
+### 🚨🚨 MAJOR RETRACTION (2026-04-23) — see `docs/CORRECTION_2026_04_23.md`
+
+All "fuse save X%" numbers below (both the 2026-04-18 figures AND the
+2026-04-22 flagship figures) were **unfair**: serial baseline used 3D SDPA
+inputs that fell back to the math backend, while fused used 4D inputs that
+dispatched to FlashAttention-2. nsys confirmed this.
+
+**Fair comparison (both paths forced to FA2)**:
+- bs 32-128: fuse wins +3-7% (launch savings)
+- bs 256-8192: fuse **loses 7-26%** (torch.bmm at batch=2 is slower than 2× mm)
+
+The 2026-04-22 2-hour earlier retraction below is still correct as far as it
+goes, but is ALSO superseded by this 2026-04-23 correction which invalidates
+even the corrected `bench_real_bmm_fused` numbers.
+
+---
+
 ### 🚨 RETRACTION (2026-04-22)
 
 **Two earlier claims were wrong and have been superseded**:

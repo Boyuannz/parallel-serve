@@ -1,7 +1,19 @@
 # Friday Meeting — Fused Split vs Serial Split Data (2026-04-25)
 
-**Goal**: Show that fuse on top of split saves another 7-65% vs plain
+> ## ⚠️ DATA SUPERSEDED by `docs/CORRECTION_2026_04_23.md`
+>
+> The original headline "fuse saves 7-65%" was an artifact of SDPA backend
+> dispatch (serial got slow math backend, fused got FA2). Fair comparison:
+> fuse wins +3-7% at bs≤128, **loses 10-26% at bs≥256**. See correction doc
+> for details and for the revised meeting story.
+
+**Original (superseded) goal**: Show that fuse on top of split saves another 7-65% vs plain
 serial split, justifying writing a routing kernel.
+
+**Revised goal**: Show that with current off-the-shelf primitives (`torch.bmm` + SDPA),
+fuse only wins at small batches. A custom N=2-tuned routing kernel is therefore the
+ONLY path to positive save% at production batch sizes. Motivation for advisor to
+write (or endorse our writing) the routing kernel is **stronger**, not weaker.
 
 ---
 
