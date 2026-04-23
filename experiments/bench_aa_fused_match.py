@@ -62,15 +62,17 @@ def build_stacked_weights(n_layers, H, FF, dtype):
 
 
 def single_forward(x, w, n_heads, head_dim, H):
+    # FIX 2026-04-23: 4D q/k/v so SDPA dispatches to FlashAttention-2,
+    # matching the fused path's backend. 3D version fell back to math backend.
     h = F.rms_norm(x, (H,), w["ln1"])
     qkv = h @ w["W_qkv"]
     q, k, v = qkv.chunk(3, dim=-1)
     M = h.shape[0]
-    q = q.view(M, n_heads, head_dim).transpose(0, 1)
-    k = k.view(M, n_heads, head_dim).transpose(0, 1)
-    v = v.view(M, n_heads, head_dim).transpose(0, 1)
+    q = q.view(1, M, n_heads, head_dim).transpose(1, 2)   # [1, n_h, M, hd]
+    k = k.view(1, M, n_heads, head_dim).transpose(1, 2)
+    v = v.view(1, M, n_heads, head_dim).transpose(1, 2)
     attn = F.scaled_dot_product_attention(q, k, v)
-    attn = attn.transpose(0, 1).contiguous().view(M, H)
+    attn = attn.transpose(1, 2).contiguous().view(M, H)
     x = x + attn @ w["W_o"]
     h = F.rms_norm(x, (H,), w["ln2"])
     gu = h @ w["W_gu"]

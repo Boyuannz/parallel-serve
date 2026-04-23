@@ -28,91 +28,91 @@
     {
       "base_bs": 8,
       "rl_bs": 2040,
-      "ms_serial": 383.69464111328125,
+      "ms_serial": 165.9563995361328,
       "ms_fused_bmm": null,
       "save_pct": null
     },
     {
       "base_bs": 16,
       "rl_bs": 2032,
-      "ms_serial": 383.6325927734375,
+      "ms_serial": 166.2285888671875,
       "ms_fused_bmm": null,
       "save_pct": null
     },
     {
       "base_bs": 32,
       "rl_bs": 2016,
-      "ms_serial": 383.47080078125,
+      "ms_serial": 166.95726013183594,
       "ms_fused_bmm": null,
       "save_pct": null
     },
     {
       "base_bs": 64,
       "rl_bs": 1984,
-      "ms_serial": 379.85833129882815,
+      "ms_serial": 166.52288208007812,
       "ms_fused_bmm": null,
       "save_pct": null
     },
     {
       "base_bs": 128,
       "rl_bs": 1920,
-      "ms_serial": 361.96946411132814,
+      "ms_serial": 162.7873291015625,
       "ms_fused_bmm": null,
       "save_pct": null
     },
     {
       "base_bs": 256,
       "rl_bs": 1792,
-      "ms_serial": 346.1085144042969,
+      "ms_serial": 166.3352844238281,
       "ms_fused_bmm": null,
       "save_pct": null
     },
     {
       "base_bs": 512,
       "rl_bs": 1536,
-      "ms_serial": 305.6986083984375,
+      "ms_serial": 159.51585388183594,
       "ms_fused_bmm": null,
       "save_pct": null
     },
     {
       "base_bs": 768,
       "rl_bs": 1280,
-      "ms_serial": 279.80678100585936,
+      "ms_serial": 154.9670379638672,
       "ms_fused_bmm": null,
       "save_pct": null
     },
     {
       "base_bs": 1024,
       "rl_bs": 1024,
-      "ms_serial": 282.90723876953126,
-      "ms_fused_bmm": 194.56040954589844,
-      "save_pct": 31.22819677852219
+      "ms_serial": 160.65003051757813,
+      "ms_fused_bmm": 189.35562133789062,
+      "save_pct": -17.868400477628033
     },
     {
       "base_bs": 1280,
       "rl_bs": 768,
-      "ms_serial": 280.6835205078125,
+      "ms_serial": 155.9187469482422,
       "ms_fused_bmm": null,
       "save_pct": null
     },
     {
       "base_bs": 1536,
       "rl_bs": 512,
-      "ms_serial": 308.1494506835937,
+      "ms_serial": 160.3948547363281,
       "ms_fused_bmm": null,
       "save_pct": null
     },
     {
       "base_bs": 1792,
       "rl_bs": 256,
-      "ms_serial": 350.16929931640624,
+      "ms_serial": 167.862890625,
       "ms_fused_bmm": null,
       "save_pct": null
     },
     {
       "base_bs": 2040,
       "rl_bs": 8,
-      "ms_serial": 393.1326477050781,
+      "ms_serial": 169.57173767089844,
       "ms_fused_bmm": null,
       "save_pct": null
     }
