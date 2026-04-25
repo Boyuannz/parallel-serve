@@ -116,6 +116,113 @@ The advisor's proposed kernel now has **stronger justification**:
 
 ---
 
+## Evolution of the "fused attention" narrative
+
+This section traces what we believed about "fused attention" at each
+checkpoint and what we now know was actually true.
+
+### Stage 2 (2026-04-18, `experiments/two_model_block.py`)
+
+We introduced fused attention via `q.view(2, M, n_heads, head_dim).transpose(1, 2)`
+to make a single `F.scaled_dot_product_attention` call handle both models.
+Per-block measurements:
+
+| bs | serial ms | fused ms | save |
+|---:|---:|---:|---:|
+| 64 | 0.928 | 0.684 | +26% |
+| 128 | 0.964 | 0.693 | +28% |
+| 2048 | 7.400 | 4.587 | +38% |
+
+**What we believed**: fused attention via SDPA batch-dim fuse was a real win.
+**What was actually true**: serial path used 3D `[n_h, M, hd]` SDPA inputs,
+which PyTorch routed to the math backend (slow). Fused path used 4D
+`[2, n_h, M, hd]`, which routed to FlashAttention-2. **The save% was almost
+entirely from this backend asymmetry, not from fuse.**
+
+### Stage 3 (2026-04-18, `experiments/full_stack_benchmark.py`)
+
+Same Stage-2 setup scaled to full 32-layer LLaMA-7B. Same bug, same kind of
+"+25%" numbers. **All retracted**.
+
+### `experiments/fused_upper_bound.py` (2026-04-18)
+
+Even more aggressive: claimed `single_model(cat(x_a, x_b))` (single forward
+on the concatenated input through one model) was the "fused-kernel theoretical
+lower bound" with +50% speedup at small batch.
+
+**What was actually true**: this baseline ran 2× the sequence length of the
+real fused (one model's attention sees all `2M` tokens, so attention compute
+is `O((2S)²) = 4·S²` instead of `2·O(S²) = 2·S²`). It's not an upper bound at
+all — it's "single model with double batch under full self-attention". **Retracted.**
+
+### 2026-04-22 overnight run
+
+We re-ran the same recipe at many batch sizes and split ratios, and
+extrapolated to dramatic numbers:
+
+| Bench | Headline |
+|---|---|
+| `bench_real_bmm_fused` | +31.6% at bs=2048 |
+| `bench_large_batch_sweep` | +65.4% at bs=8192 |
+| `bench_aa_fused_match` | fused = 51% of single_server time |
+
+All driven by the same SDPA-backend bug, scaled. **All retracted.**
+
+### 2026-04-23 nsys profile + `bench_fa2_fair.py`
+
+`nsys` revealed `softmax_warp_forward` and `ampere_sgemm_*` kernels in serial
+(math backend signatures), `pytorch_flash::flash_fwd_kernel` in fused (FA2
+signature). Forced both to 4D SDPA inputs and re-ran:
+
+| bs | OLD | FAIR |
+|---:|---:|---:|
+| 32 | +14.9% | **+7.0%** |
+| 128 | +18.7% | **+2.7%** |
+| 256 | +13.3% | **-6.9%** |
+| 2048 | +31.6% | **-18.2%** |
+| 8192 | +65.4% | **-25.9%** |
+
+**The corrected truth: attention fuse alone is approximately neutral (≤1% effect).**
+Two SDPA calls on `[1, n_h, M, hd]` and one SDPA call on `[2, n_h, M, hd]`
+have nearly identical cost once both use FA2. The "savings" everyone saw
+came from the math-vs-FA2 asymmetry on the serial side.
+
+The `bmm` MLP fuse, which the previous narrative attributed positive value
+to, actually **loses 5-15% per layer at production batch** because cuBLAS
+batched GEMM is tuned for `batch ≥ 8` (MoE), not `batch = 2`.
+
+### 2026-04-23 routed kernel (`kernel/src/`)
+
+Custom Triton routing kernel + per-model SDPA (no attention batch-dim fuse,
+to support unbalanced splits). Full 32-layer:
+
+| bs | serial_FA2 | routed | result |
+|---:|---:|---:|---|
+| 64 | 23.12 | 21.49 | routed wins 7% |
+| 128 | 23.95 | 22.61 | routed wins 5.6% |
+| 256 | 28.16 | 30.60 | routed loses 8.7% |
+| 2048 | 166.75 | 182.61 | routed loses 9.5% |
+
+The wins at small batch are NOT from attention fusion — both paths run two
+separate SDPA calls. The wins come from kernel-launch savings on the linear
+layers (one routed_gemm replaces two `mm`) and from internalized routing
+that avoids `torch.bmm`'s batch=2 inefficiency.
+
+### Summary of corrected claims
+
+| Claim | Status |
+|---|:-:|
+| "Attention fuse via SDPA batch-dim saves 25-65%" | ❌ False — backend asymmetry artifact |
+| "Attention fuse is neutral (≤1% effect)" | ✅ True — confirmed by fair FA2 bench |
+| "Fused full-stack saves at large batch" | ❌ False — bmm loses 18-26% at bs ≥ 256 |
+| "Routed kernel can win without attention fuse" | ✅ True — wins 5-7% at bs ≤ 128 from linear-layer savings |
+| "fused_upper = `block_a(cat)` is a kernel lower bound" | ❌ False — runs 2× attention sequence length |
+
+The positive lesson: **launch overhead is real** at small batch; routing
+4 linear layers into 4 kernels (instead of 8) provides genuine savings in
+the bs ≤ 128 regime — independent of attention. Attention fusion
+specifically was always a red herring.
+
 ## Process lesson
 
 The serial baseline we used made a subtle mistake (3D SDPA input) that no
